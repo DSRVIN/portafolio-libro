@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio — Estudio Creativo</title>
+    <meta name="description" content="Portafolio digital interactivo de un estudio creativo: exploralo como un cuaderno de lujo abierto sobre un escritorio.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📔</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/flipbook.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <div class="scene">
+
+        <!-- Botón flotante superior derecha -->
+        <button class="btn-contact" id="btnContact" type="button">
+            <span class="btn-contact-icon" aria-hidden="true"></span>
+            Contáctanos
+            <span class="btn-contact-arrow" aria-hidden="true"></span>
+        </button>
+
+        <!-- Menú móvil (las pestañas se convierten en drawer) -->
+        <button class="menu-fab" id="menuFab" type="button" aria-label="Abrir menú de secciones" aria-expanded="false"></button>
+        <div class="drawer" id="drawer" aria-hidden="true">
+            <div class="drawer-head">
+                <span class="drawer-title">Secciones</span>
+                <button class="drawer-close" id="drawerClose" type="button" aria-label="Cerrar menú"></button>
+            </div>
+            <nav class="drawer-list" id="drawerList" aria-label="Secciones del portafolio"></nav>
+        </div>
+        <div class="drawer-veil" id="drawerVeil"></div>
+
+        <!-- Escenario: el cuaderno sobre el escritorio -->
+        <main class="stage" id="stage">
+            <div class="notebook" id="notebook" data-state="cover">
+                <!-- Pestañas ancladas al lomo (se desplazan con él) -->
+                <div class="chrome" id="chrome" aria-hidden="false">
+                    <nav class="tabs" id="tabs" aria-label="Secciones del portafolio"></nav>
+                </div>
+                <!-- Grosor físico: contratapa dura y canto de hojas (visible cerrado) -->
+                <div class="book-block" aria-hidden="true"></div>
+                <!-- El libro (motor flipbook) -->
+                <div id="book"></div>
+            </div>
+
+            <button class="edgenav prev" id="btnPrev" type="button" aria-label="Página anterior">&#8249;</button>
+            <button class="edgenav next" id="btnNext" type="button" aria-label="Página siguiente">&#8250;</button>
+        </main>
+
+        <!-- Footer flotante, separado del cuaderno -->
+        <footer class="footer">
+            <div class="footer-card">
+                <div class="stat">
+                    <span class="stat-icon" data-icon="folder"></span>
+                    <div class="stat-body">
+                        <span class="stat-num" data-count="120" data-suffix="+">0</span>
+                        <span class="stat-label">Proyectos completados</span>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon" data-icon="users"></span>
+                    <div class="stat-body">
+                        <span class="stat-num" data-count="98" data-suffix="%">0</span>
+                        <span class="stat-label">Clientes satisfechos</span>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon" data-icon="calendar"></span>
+                    <div class="stat-body">
+                        <span class="stat-num" data-count="6" data-suffix="+">0</span>
+                        <span class="stat-label">Años de experiencia</span>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon" data-icon="chart"></span>
+                    <div class="stat-body">
+                        <span class="stat-num" data-count="100" data-suffix="%">0</span>
+                        <span class="stat-label">Comprometidos con tu éxito</span>
+                    </div>
+                </div>
+                <div class="footer-quote">
+                    <span class="quote-mark" aria-hidden="true">&ldquo;</span>
+                    <p>Diseñamos y desarrollamos hoy las soluciones que impulsan <em>el mañana</em>.</p>
+                    <span class="quote-mark end" aria-hidden="true">&rdquo;</span>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="js/flipbook.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

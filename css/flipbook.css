@@ -1,0 +1,114 @@
+/* ============================================================
+   Flipbook — estilos del componente (independientes del contenido)
+   Uso: el contenedor recibe .fb-book; el tamaño lo define el host
+   (width + aspect-ratio en su propio CSS).
+   ============================================================ */
+
+.fb-book {
+    position: relative;
+    transition: transform 0.65s cubic-bezier(0.33, 0, 0.2, 1);
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.fb-book.fb-grabbing { cursor: grabbing; }
+
+/* Sombra de suelo (dos capas) bajo la página derecha (::before) y la
+   izquierda (::after). Sin fondo: cualquier textura aquí se asoma por las
+   esquinas redondeadas y por las zonas recortadas durante el volteo. */
+.fb-book::before, .fb-book::after {
+    content: '';
+    position: absolute;
+    top: 1.5%;
+    height: 97%;
+    width: 100%;
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.40), 0 5px 14px rgba(0, 0, 0, 0.22);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.45s;
+    pointer-events: none;
+}
+.fb-book::before { left: 0;     border-radius: 0 8px 8px 0; }
+.fb-book::after  { left: -100%; border-radius: 8px 0 0 8px; }
+.fb-book.fb-has-right::before { opacity: 1; }
+.fb-book.fb-has-left::after   { opacity: 1; }
+
+/* Hoja: contiene frente (recto), sombra proyectada y solapa (verso) */
+.fb-paper { position: absolute; inset: 0; }
+
+.fb-front { position: absolute; inset: 0; }
+
+/* Solapa: la parte plegada de la hoja; muestra el verso reflejado */
+.fb-flap {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+}
+.fb-mirror {
+    position: absolute;
+    inset: 0;
+    transform: scaleX(-1);   /* pre-espejo: el reflejo del pliegue lo endereza */
+}
+
+/* Sombra que la solapa proyecta sobre lo que se revela debajo */
+.fb-cast {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    pointer-events: none;
+}
+/* Degradado de pliegue sobre la propia solapa */
+.fb-foldshade {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/* Página (una cara). El contenido lo estiliza el host. */
+.fb-page {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(155deg, #ffffff, #f5f3ee);   /* papel: blanco cálido sutil */
+    border-radius: 0 8px 8px 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+/* Gutter del lomo: sombra suave hacia el pliegue, sin filos que marquen líneas.
+   (el .fb-mirror scaleX(-1) lo coloca del lado correcto en el verso) */
+.fb-page::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to right, rgba(0,0,0,0.13), rgba(0,0,0,0.03) 6%, transparent 14%);
+}
+.fb-content {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.fb-pagenum {
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+    padding: 10px 0 0;
+}
+
+/* Zonas de agarre (bordes exteriores; la esquina se elige por la altura
+   del puntero: mitad superior o inferior) */
+.fb-hotspot {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 28%;
+    z-index: 1000;
+    cursor: grab;
+    touch-action: none;
+}
+.fb-hotspot.fb-next { right: 0; }
+.fb-hotspot.fb-prev { left: -100%; }
+.fb-hotspot.fb-hidden { display: none; }

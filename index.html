@@ -55,10 +55,18 @@
                 <div class="chrome" id="chrome">
                     <nav class="tabs" id="tabs" aria-label="Secciones del portafolio"></nav>
                 </div>
-                <!-- Grosor físico: contratapa dura y canto de hojas (visible cerrado) -->
+                <!-- Tapa dura: tabla rígida que envuelve al bloque de hojas.
+                     No es una página: vive fuera del libro y siempre es mayor
+                     que el papel (voladizo de ~5 mm por los cuatro lados). -->
                 <div class="book-block" aria-hidden="true"></div>
-                <!-- El libro (motor flipbook) -->
-                <div id="book"></div>
+                <!-- Canto del bloque de hojas (solo visible con el libro cerrado) -->
+                <div class="page-edge" aria-hidden="true"></div>
+                <!-- El bloque de hojas (motor flipbook). El envoltorio recorta
+                     solo el papel en modo una-página, para que la cubierta
+                     pueda seguir pintando su voladizo por fuera. -->
+                <div class="book-clip">
+                    <div id="book"></div>
+                </div>
             </div>
 
             <button class="edgenav prev" id="btnPrev" type="button" aria-label="Página anterior">&#8249;</button>

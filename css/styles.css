@@ -24,6 +24,8 @@
     --pw: min(calc(min(65vh, 690px) * var(--ratio)),  /* limitado por alto disponible */
               calc((100vw - 330px) / 2));              /* y por ancho (pliego + pestañas) */
     --ph: calc(var(--pw) / var(--ratio));
+    /* Voladizo de la tapa dura: ~5 mm sobre una página de ~210 mm de alto */
+    --board: clamp(6px, calc(var(--ph) * 0.024), 16px);
     --flip-ease: cubic-bezier(0.33, 0, 0.2, 1);        /* misma curva que el motor */
 }
 
@@ -117,76 +119,109 @@ body {
 .notebook[data-state="cover"] .chrome { transform: translateX(calc(var(--pw) / -2)); }
 .notebook[data-state="end"] .chrome   { transform: translateX(calc(var(--pw) / 2)); }
 
-/* --- Grosor físico del cuaderno: contratapa dura y canto de hojas ---
-   Visible cuando el cuaderno está cerrado (portada o contraportada): la
-   tabla de la contratapa asoma unos milímetros bajo la pila y el canto
-   muestra las hojas apiladas. Abierto, el pliego ocupa la escena. */
+/* --- Tapa dura: la cubierta que envuelve al bloque de hojas ---
+   No es una hoja más: es una tabla rígida SIEMPRE presente y siempre mayor
+   que el papel (voladizo de ~5 mm por los cuatro lados). Cerrada envuelve la
+   pila; abierta se despliega y enmarca el pliego completo. Vive detrás del
+   papel (z 5 < #book z 10), así que solo asoma como marco: las hojas nunca
+   sobresalen de la tapa.
+   Geometría medida: papel cerrado = caja del cuaderno; abierto = de -50% a
+   150% de esa caja (dos páginas centradas en el lomo). */
 .book-block {
     position: absolute;
     inset: 0;
     z-index: 5;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.12s ease;   /* al abrir desaparece casi al instante */
 }
-.notebook[data-mode="spread"][data-state="cover"] .book-block,
-.notebook[data-mode="spread"][data-state="end"]   .book-block {
-    opacity: 1;
-    transition: opacity 0.38s ease;   /* al cerrar reaparece con suavidad */
-}
-/* Contratapa rígida, ligeramente mayor que las hojas (voladizo de tapa dura) */
 .book-block::before {
     content: '';
     position: absolute;
-    inset: -7px;
-    border-radius: 18px;
+    top: calc(var(--board) * -1);
+    bottom: calc(var(--board) * -1);
+    left: calc(var(--board) * -1);
+    width: calc(100% + var(--board) * 2);
+    border-radius: calc(var(--board) + 8px);
     background:
         radial-gradient(120% 90% at 50% 0%, rgba(255, 216, 170, 0.10), rgba(0, 0, 0, 0) 55%),
+        repeating-radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.012) 0 2px, rgba(0, 0, 0, 0.02) 3px 5px),
         linear-gradient(150deg, #4A3123 0%, #35241A 55%, #241811 100%);
     box-shadow:
         0 30px 54px rgba(60, 36, 14, 0.42),
         0 8px 18px rgba(60, 36, 14, 0.28),
         inset 0 1px 1px rgba(255, 230, 200, 0.16),
         inset 0 -2px 5px rgba(0, 0, 0, 0.4);
+    /* Se despliega algo ANTES que el bloque de papel (0.5s frente a los 0.65s
+       del translate de .fb-book): con la misma curva y menor duración la tabla
+       va siempre por delante, así el papel nunca se sale de la cubierta a
+       mitad de la apertura. `left/width` no se compositan, de ahí el margen. */
+    transition:
+        left  0.5s var(--flip-ease),
+        width 0.5s var(--flip-ease);
 }
-/* Canto: las hojas apiladas entre tapa y tapa */
+/* Costura del canto de la tapa, un par de milímetros por dentro del borde */
 .book-block::after {
     content: '';
     position: absolute;
+    inset: calc(var(--board) * -0.45);
+    border-radius: calc(var(--board) + 3px);
+    border: 1px dashed rgba(226, 190, 148, 0.16);
+    transition:
+        left  0.5s var(--flip-ease),
+        width 0.5s var(--flip-ease);
+}
+/* Abierta: la cubierta se despliega y enmarca las dos páginas.
+   `.is-opening` la despliega ya al empezar a arrastrar una tapa: si esperase
+   al soltar, el papel quedaría un instante fuera del cuero. */
+.notebook[data-mode="spread"][data-state="open"] .book-block::before,
+.notebook[data-mode="spread"].is-opening .book-block::before {
+    left: calc(-50% - var(--board));
+    width: calc(200% + var(--board) * 2);
+}
+.notebook[data-mode="spread"][data-state="open"] .book-block::after,
+.notebook[data-mode="spread"].is-opening .book-block::after {
+    left: calc(-50% - var(--board) * 0.45);
+    right: auto;
+    width: calc(200% + var(--board) * 0.9);
+}
+
+/* Canto del bloque de hojas: solo se ve con el libro cerrado */
+.page-edge {
+    position: absolute;
     top: 6px;
     bottom: 2px;
-    right: -5px;
+    right: calc(var(--board) * -0.5);
     width: 7px;
+    z-index: 11;          /* por delante de la tapa: es el canto que asoma */
+    pointer-events: none;
     border-radius: 0 4px 4px 0;
     background:
         repeating-linear-gradient(180deg, #F7F0E1 0 2px, #E6DAC2 2px 3px, #F2EAD8 3px 5px),
         #F1E9D6;
     box-shadow: inset -1px 0 2px rgba(91, 58, 41, 0.35);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
-.notebook[data-state="end"] .book-block::after {
+.notebook[data-state="cover"] .page-edge,
+.notebook[data-state="end"]   .page-edge { opacity: 1; }
+.notebook[data-state="end"] .page-edge {
     right: auto;
-    left: -5px;
+    left: calc(var(--board) * -0.62);
     border-radius: 4px 0 0 4px;
     box-shadow: inset 1px 0 2px rgba(91, 58, 41, 0.35);
 }
 
 /* --- Pestañas tipo agenda (borde derecho del cuaderno) --- */
+/* Las pestañas asoman por el canto derecho, ya por fuera del voladizo de la
+   tapa dura (si no, la cubierta les come el icono). */
 .tabs {
     position: absolute;
-    left: calc(50% + var(--pw) - 18px);
+    left: calc(50% + var(--pw) + var(--board) - 16px);
     top: 50%;
     transform: translateY(-50%);
-    transition: left 0.65s var(--flip-ease);
     display: flex;
     flex-direction: column;
     gap: clamp(6px, 1.1vh, 12px);
     pointer-events: auto;
-}
-/* Contraportada: la pila queda a la izquierda del lomo, así que las
-   pestañas vuelven a pegarse al borde derecho de la pila cerrada (ahí
-   está la espiral: se separan 2px para asomar tras ella sin chocar). */
-.notebook[data-mode="spread"][data-state="end"] .tabs {
-    left: calc(50% + 2px);
 }
 .tab {
     --tab-bg: #EFE3D0;
@@ -227,10 +262,14 @@ body {
 }
 
 /* --- El libro --- */
-#book {
+.book-clip {
     position: absolute;
     inset: 0;
     z-index: 10;
+}
+#book {
+    position: absolute;
+    inset: 0;
     cursor: grab;
 }
 #book.fb-grabbing { cursor: grabbing; }
@@ -344,6 +383,21 @@ body.book-closed .footer-card {
     transform: translateY(18px);
     pointer-events: none;
 }
+
+/* Cerrado por la contraportada ("Gracias"): la escena se despeja — se van
+   pestañas, menú, flechas y footer — y queda solo el botón Contáctanos. */
+body.book-end .tabs,
+body.book-end .edgenav,
+body.book-end .menu-fab {
+    opacity: 0;
+    pointer-events: none;
+}
+body.book-end .footer-card {
+    opacity: 0;
+    transform: translateY(18px);
+    pointer-events: none;
+}
+.tabs { transition: left 0.65s var(--flip-ease), opacity 0.5s ease; }
 .stat {
     display: flex;
     align-items: center;
@@ -1014,7 +1068,14 @@ a.contact-row:hover {
 }
 .pg-plate .cover-rule { width: 22cqi; }
 
-/* --- Portada y contraportada --- */
+/* --- Portada y contraportada ---
+   Las tapas NO miden lo mismo que las hojas: la cara de cuero se extiende el
+   voladizo completo por los cuatro lados, así que el bloque de papel siempre
+   queda contenido dentro de la cubierta y nunca sobresale. */
+.pg-cover {
+    inset: calc(var(--board) * -1);
+    border-radius: calc(var(--board) + 8px);
+}
 .pg-cover {
     background:
         radial-gradient(120% 90% at 50% 0%, rgba(255, 216, 170, 0.14), rgba(0, 0, 0, 0) 55%),
@@ -1247,8 +1308,9 @@ a.contact-row:hover {
     .menu-fab { display: grid; }
     /* Modo una-página: el motor traslada el libro un ancho completo, así que
        la hoja contigua asomaba por el borde derecho de la pantalla. Se recorta
-       a los lados dejando holgura arriba y abajo para no cortar la sombra. */
-    .notebook { clip-path: inset(-140px 0px -140px 0px); }
+       SOLO el bloque de papel (no el cuaderno entero): así desaparece la hoja
+       fantasma y la cubierta conserva su voladizo lateral. */
+    .book-clip { clip-path: inset(-140px 0px -140px 0px); }
     .edgenav { width: 38px; height: 38px; font-size: 20px; }
     .btn-contact { padding: 10px 16px; font-size: 13px; }
     .footer { padding: 8px 10px 16px; }

@@ -434,6 +434,9 @@
                 // tapa dura: pivote en el centro del borde → giro plano de tabla
                 g.corner = { x: this._w, y: this._h / 2 };
                 g.P = { x: forward ? this._w : -this._w, y: this._h / 2 };
+                // la cubierta se despliega desde el primer instante del arrastre:
+                // si esperase al soltar, el papel asomaría fuera del cuero
+                document.getElementById('notebook').classList.add('is-opening');
             }
         }
 
@@ -569,10 +572,14 @@
         const state = info.current === 0 ? 'cover' : (info.current >= fb.total ? 'end' : 'open');
         notebook.dataset.state = state;
         notebook.dataset.mode = info.mode;
+        notebook.classList.remove('is-opening');   // el arrastre de tapa ya terminó
 
-        // cerrado: en escena solo el libro; al abrirlo aparecen footer,
-        // contacto y flechas (y arrancan los contadores la primera vez)
+        // Cerrado por la portada: en escena solo el libro. Al abrirlo aparecen
+        // footer, contacto y flechas (y arrancan los contadores la primera vez).
+        // Cerrado por la contraportada ("Gracias"): se retiran pestañas, footer
+        // y flechas, y queda únicamente el botón Contáctanos.
         document.body.classList.toggle('book-closed', state === 'cover');
+        document.body.classList.toggle('book-end', state === 'end');
         if (state !== 'cover') startCounters();
 
         // Con el formulario a la vista, la zona de agarre para pasar hoja se

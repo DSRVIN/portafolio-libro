@@ -15,8 +15,8 @@
        cambia BRAND aquí y el <title>/description de index.html. */
     const BRAND        = 'Estudio Creativo';
     const CONTACT_EMAIL = 'dsrvin.solutions@gmail.com';
-    const CONTACT_PHONE = '+51 987 370 297';
-    const WHATSAPP      = '51987370297';        // E.164 sin signos, para wa.me
+    const CONTACT_PHONE = '+51 926 037 358';
+    const WHATSAPP      = '51926037358';        // E.164 sin signos, para wa.me
     const WA_TEXT       = 'Hola, vi tu portafolio y quiero cotizar un proyecto.';
     const CONTACT_CITY  = 'Lima, Perú';
 

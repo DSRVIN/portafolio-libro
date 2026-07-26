@@ -608,6 +608,12 @@
         document.body.classList.toggle('book-end', state === 'end');
         if (state !== 'cover') startCounters();
 
+        // Canto del bloque de hojas: el grosor de cada lado sale de cuántas
+        // hojas quedan ahí, así que al hojear el bloque pasa de un lado al otro.
+        const grosor = (n) => (n ? (1.6 + 6.4 * n / fb.total).toFixed(1) : 0) + 'px';
+        notebook.style.setProperty('--edge-l', grosor(info.current));
+        notebook.style.setProperty('--edge-r', grosor(fb.total - info.current));
+
         // Con el formulario a la vista, la zona de agarre para pasar hoja se
         // estrecha: si no, tapa el 28% derecho de los campos y al hacer clic
         // en un input se pasa la página en vez de escribir.

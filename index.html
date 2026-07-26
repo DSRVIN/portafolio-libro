@@ -55,8 +55,10 @@
                 <div class="chrome" id="chrome">
                     <nav class="tabs" id="tabs" aria-label="Secciones del portafolio"></nav>
                 </div>
-                <!-- Canto del bloque de hojas (solo visible con el libro cerrado) -->
-                <div class="page-edge" aria-hidden="true"></div>
+                <!-- Canto del bloque de hojas: su grosor sale de cuántas hojas
+                     quedan a cada lado, así que indica por dónde vas -->
+                <div class="page-edge left" aria-hidden="true"></div>
+                <div class="page-edge right" aria-hidden="true"></div>
                 <!-- El bloque de hojas (motor flipbook). El envoltorio recorta
                      solo el papel en modo una-página, para que la cubierta
                      pueda seguir pintando su voladizo por fuera. -->

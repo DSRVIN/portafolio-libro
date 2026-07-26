@@ -112,7 +112,7 @@ body {
 .chrome {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 20;          /* por delante de la tapa: las pestañas la cruzan */
     pointer-events: none;
     transition: transform 0.65s var(--flip-ease);
 }
@@ -120,37 +120,54 @@ body {
 .notebook[data-state="end"] .chrome   { transform: translateX(calc(var(--pw) / 2)); }
 
 /* Canto del bloque de hojas: solo se ve con el libro cerrado */
+/* --- Canto del bloque de hojas ---
+   No es un adorno: su grosor lo fija main.js con las hojas que quedan a cada
+   lado del lomo, así que al hojear se ve cómo el bloque pasa de un lado al
+   otro — igual que en un libro de verdad, y de un vistazo sabes por dónde vas.
+   Va por delante de la tapa: es el canto que asoma bajo el voladizo. */
 .page-edge {
     position: absolute;
-    top: 6px;
-    bottom: 2px;
-    right: calc(var(--board) * -0.5);
-    width: 7px;
-    z-index: 11;          /* por delante de la tapa: es el canto que asoma */
+    top: 5px;
+    bottom: 3px;
+    z-index: 11;
     pointer-events: none;
-    border-radius: 0 4px 4px 0;
     background:
         repeating-linear-gradient(180deg, #F7F0E1 0 2px, #E6DAC2 2px 3px, #F2EAD8 3px 5px),
         #F1E9D6;
-    box-shadow: inset -1px 0 2px rgba(91, 58, 41, 0.35);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition:
+        opacity 0.35s ease,
+        width 0.5s var(--flip-ease),
+        left 0.65s var(--flip-ease),
+        right 0.65s var(--flip-ease);
 }
-.notebook[data-state="cover"] .page-edge,
-.notebook[data-state="end"]   .page-edge { opacity: 1; }
-.notebook[data-state="end"] .page-edge {
-    right: auto;
-    left: calc(var(--board) * -0.62);
+.page-edge.right {
+    left: 100%;
+    width: var(--edge-r, 0px);
+    border-radius: 0 4px 4px 0;
+    box-shadow: inset -1px 0 2px rgba(91, 58, 41, 0.35);
+}
+.page-edge.left {
+    right: 100%;
+    width: var(--edge-l, 0px);
     border-radius: 4px 0 0 4px;
     box-shadow: inset 1px 0 2px rgba(91, 58, 41, 0.35);
 }
+.notebook[data-state="cover"] .page-edge.right,
+.notebook[data-state="end"]   .page-edge.left,
+.notebook[data-state="open"]  .page-edge { opacity: 1; }
+/* Abierto: cada bloque se apoya en el canto exterior de su propia página */
+.notebook[data-mode="spread"][data-state="open"] .page-edge.right { left: calc(50% + var(--pw)); }
+.notebook[data-mode="spread"][data-state="open"] .page-edge.left  { right: calc(50% + var(--pw)); }
 
 /* --- Pestañas tipo agenda (borde derecho del cuaderno) --- */
-/* Las pestañas asoman por el canto derecho, ya por fuera del voladizo de la
-   tapa dura (si no, la cubierta les come el icono). */
+/* Las pestañas van pegadas al canto del BLOQUE DE HOJAS, no al borde de la
+   tapa: nacen unos milímetros dentro del papel y sobresalen cruzando por
+   encima del voladizo, como los separadores de una agenda. De ahí que el
+   cromo se dibuje por delante de la cubierta. */
 .tabs {
     position: absolute;
-    left: calc(50% + var(--pw) + var(--board) - 16px);
+    left: calc(50% + var(--pw) - 13px);
     top: 50%;
     transform: translateY(-50%);
     display: flex;

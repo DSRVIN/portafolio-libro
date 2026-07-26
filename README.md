@@ -40,7 +40,12 @@ python -m http.server 5187
   (`.pg-inner`, sin agrandar la caja para no escalar las container queries).
   Como el motor deja esas dos hojas al fondo de cada pila, su cuero asoma alrededor del
   papel y **forma solo los dos marcos del libro abierto**, sin que nadie los pinte.
-  Las **pestañas** (`.chrome`) se desplazan con el lomo.
+- El **canto del bloque de hojas** (`.page-edge.left/.right`) no es un adorno: `main.js`
+  fija su grosor con las hojas que quedan a cada lado del lomo, así que al hojear el
+  bloque migra de un lado al otro y de un vistazo se ve por dónde vas.
+- Las **pestañas** (`.chrome`) nacen del canto del papel —no del borde de la tapa— y
+  sobresalen cruzando por encima del voladizo, como los separadores de una agenda; de ahí
+  que el cromo se dibuje por delante de la cubierta. Se desplazan con el lomo.
 - La página carga con el **libro cerrado y nada más en escena**: el botón Contáctanos,
   las flechas y el footer aparecen (con fundido) recién al abrir la tapa, y los contadores
   del footer arrancan en ese momento. Se abre con "Iniciar recorrido", clic en la portada,

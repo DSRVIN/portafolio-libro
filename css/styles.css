@@ -261,6 +261,30 @@ body {
    ni muestran brillo de pliegue (no hay pliegue que brille) */
 .fb-board .fb-cast, .fb-board .fb-foldshade { display: none; }
 
+/* Zonas de agarre para pasar hoja. El motor las hace del 28% del ancho y las
+   dibuja por encima de todo (z-index 1000), así que tapaban botones, enlaces
+   y campos cercanos al borde exterior. Se reducen a un filo por fuera del
+   margen de la página (el contenido empieza al 8%): sigue habiendo esquina
+   para arrastrar, y además se puede pasar hoja deslizando sobre la página. */
+.fb-hotspot { width: 7%; }
+.notebook.form-open .fb-hotspot.fb-next { width: 5%; }
+
+/* Cada hoja ocupa TODO el ancho del libro, así que la hoja ya volteada
+   (que se dibuja por encima) tapaba la página de abajo e impedía hacer clic
+   en campos, enlaces y botones. Solo las caras realmente visibles reciben
+   el puntero; el contenedor de la hoja deja pasar los clics. */
+.fb-paper { pointer-events: none; }
+.fb-front, .fb-flap { pointer-events: auto; }
+
+/* Foco visible en todos los controles (el outline por defecto se pierde
+   sobre el cuero oscuro de las tapas) */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+.pg-cover :focus-visible { outline-color: #E8C68B; }
+
 /* Flechas laterales */
 .edgenav {
     position: absolute;
@@ -499,8 +523,27 @@ body.book-closed .footer-card {
     letter-spacing: 0.06em;
     backdrop-filter: blur(3px);
 }
+/* Foto real: cubre el hueco conservando marco, sombra y pie de foto.
+   Si el archivo falta, main.js retira el <img> y reaparece el placeholder. */
+.photo-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--pos, 50% 50%);
+    display: block;
+}
+.photo.has-img .photo-ic { display: none; }
+.photo.has-img::after {
+    background:
+        linear-gradient(115deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 38%),
+        linear-gradient(0deg, rgba(30, 20, 10, 0.45), rgba(30, 20, 10, 0) 42%);
+}
 .photo.ratio-wide { aspect-ratio: 16 / 9.6; }
 .photo.ratio-tall { aspect-ratio: 16 / 11.5; }
+.photo.ratio-featured { aspect-ratio: 16 / 7; }   /* franja panorámica */
+.photo.ratio-strip { aspect-ratio: 16 / 5; }      /* franja baja, para pies de página */
 .photo.tone-b { background: linear-gradient(140deg, #DCE3D2 0%, #BFCBAC 55%, #9FAF88 100%); }
 .photo.tone-c { background: linear-gradient(140deg, #E7D8CF 0%, #D3B5A4 55%, #B98F79 100%); }
 .photo.tone-d { background: linear-gradient(140deg, #D7DEE4 0%, #B8C5D0 55%, #93A6B7 100%); }
@@ -542,42 +585,88 @@ body.book-closed .footer-card {
 }
 .callout p { font-size: 2.75cqi; line-height: 1.55; color: #5D5546; }
 
-/* --- Filas de metodología (página derecha del inicio) --- */
-.method-list { display: flex; flex-direction: column; }
-.method-row {
+/* --- Fichas de persona (equipo, dentro de Quiénes somos) ---
+   El retrato usa el mismo componente .photo: sin archivo queda el hueco
+   preparado; al poner `img` en el array TEAM aparece la foto real. */
+.people { display: flex; flex-direction: column; gap: 3cqi; }
+.person {
     display: flex;
-    align-items: center;
-    gap: 3.2cqi;
-    padding: 2.9cqi 0;
-    border-bottom: 1px solid #E7DCC8;
+    align-items: stretch;
+    gap: 3.4cqi;
+    padding: 3cqi;
+    border-radius: 3cqi;
+    background: var(--card);
+    box-shadow: 0 6px 16px rgba(91, 58, 41, 0.10), inset 0 0 0 1px rgba(91, 58, 41, 0.06);
 }
-.method-row:last-child { border-bottom: none; }
-.method-ic {
+.person-photo {
+    width: 26%;
+    flex: none;
+    aspect-ratio: 3 / 4;
+    border-radius: 2.2cqi;
+}
+.person-photo .photo-ic svg { width: 7cqi; height: 7cqi; }
+.person-body { flex: 1; min-width: 0; align-self: center; }
+.person-body h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 3.6cqi;
+    color: #23201B;
+}
+.person-role {
+    display: block;
+    font-size: 2.2cqi;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    margin: 0.7cqi 0 1.2cqi;
+}
+.person-body p { font-size: 2.5cqi; line-height: 1.5; color: var(--muted); }
+
+/* --- Planes de mantenimiento (escala Básico < Profesional < Premium) --- */
+.plans { display: flex; flex-direction: column; gap: 2.8cqi; }
+.plan {
+    display: flex;
+    align-items: flex-start;
+    gap: 3cqi;
+    padding: 3.2cqi 3.4cqi;
+    border-radius: 2.8cqi;
+    background: var(--card);
+    box-shadow: 0 5px 14px rgba(91, 58, 41, 0.10), inset 0 0 0 1px rgba(91, 58, 41, 0.06);
+    border-left: 3px solid var(--accent);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.plan:nth-child(2) { border-left-color: #C08A3E; }
+.plan:nth-child(3) { border-left-color: var(--accent-dark); }
+.plan:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(91, 58, 41, 0.16), inset 0 0 0 1px rgba(91, 58, 41, 0.06); }
+.plan-ic {
     display: grid;
     place-items: center;
-    width: 8.4cqi;
-    height: 8.4cqi;
+    width: 8cqi;
+    height: 8cqi;
     flex: none;
     border-radius: 50%;
     background: #F4E9D7;
     color: #6B4F35;
 }
-.method-ic svg { width: 4.2cqi; height: 4.2cqi; }
-.method-txt { flex: 1; min-width: 0; }
-.method-txt h4 {
+.plan-ic svg { width: 4cqi; height: 4cqi; }
+.plan-body { flex: 1; min-width: 0; }
+.plan-body h4 {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 3.3cqi;
+    font-size: 3.4cqi;
     color: #23201B;
-    margin-bottom: 0.7cqi;
+    margin-bottom: 1cqi;
 }
-.method-txt p { font-size: 2.45cqi; line-height: 1.42; color: var(--muted); }
-.method-thumb {
-    width: 15cqi;
-    aspect-ratio: 16 / 10.5;
-    flex: none;
-    border-radius: 1.6cqi;
+.plan-sub {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 2.15cqi;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    margin-top: 0.5cqi;
 }
-.method-thumb .photo-ic svg { width: 5cqi; height: 5cqi; }
+.plan-body p { font-size: 2.45cqi; line-height: 1.45; color: var(--muted); }
 
 /* --- Grid de tarjetas (servicios, valores) --- */
 .cards {
@@ -614,9 +703,26 @@ body.book-closed .footer-card {
     color: #23201B;
 }
 .card p { font-size: 2.3cqi; line-height: 1.45; color: var(--muted); }
+/* Rejilla de servicios: 5 tarjetas en 3 filas, algo más ceñidas */
+.cards.svc { gap: 2.3cqi; }
+.cards.svc .card { padding: 2.6cqi 3cqi; }
+.cards.svc .card:last-child { grid-column: 1 / -1; }   /* la 5ª ocupa el ancho */
+
+/* Una columna: el icono a la izquierda y el texto apilado a su derecha
+   (en fila los tres, los títulos largos partían la descripción). */
 .cards.one-col { grid-template-columns: 1fr; }
-.cards.one-col .card { display: flex; align-items: flex-start; gap: 3cqi; padding: 3cqi 3.4cqi; }
-.cards.one-col .card-ic { margin-bottom: 0; flex: none; }
+.cards.one-col .card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: 'ic titulo' 'ic texto';
+    column-gap: 3cqi;
+    row-gap: 0.6cqi;
+    align-items: center;
+    padding: 3cqi 3.4cqi;
+}
+.cards.one-col .card-ic { grid-area: ic; margin-bottom: 0; flex: none; align-self: center; }
+.cards.one-col .card h4 { grid-area: titulo; margin-bottom: 0; }
+.cards.one-col .card p  { grid-area: texto; }
 
 /* --- Timeline (metodología detallada) --- */
 .timeline { display: flex; flex-direction: column; }
@@ -723,6 +829,10 @@ body.book-closed .footer-card {
 .project.mini .project-body { padding: 3cqi 3.4cqi; }
 .project.mini h4 { font-size: 3.5cqi; margin-bottom: 0.8cqi; }
 .project.mini p { font-size: 2.35cqi; }
+.project.mini .project-cta { padding: 1.5cqi 3cqi; font-size: 2.2cqi; margin-top: 1.6cqi; }
+.proj-more { font-size: 2.4cqi; line-height: 1.5; color: var(--muted); text-align: center; }
+/* El CTA del proyecto es un enlace real al sitio publicado */
+a.project-cta { text-decoration: none; }
 
 /* --- Tecnologías --- */
 .tech-grid {
@@ -756,33 +866,6 @@ body.book-closed .footer-card {
 .tech-name { font-size: 2.8cqi; font-weight: 700; color: #33291D; }
 .tech-tag { display: block; font-size: 2.1cqi; font-weight: 500; color: var(--muted); margin-top: 0.4cqi; }
 
-/* --- Equipo --- */
-.team-list { display: flex; flex-direction: column; gap: 2.6cqi; }
-.member {
-    display: flex;
-    align-items: center;
-    gap: 3.2cqi;
-    padding: 2.8cqi 3.4cqi;
-    border-radius: 2.6cqi;
-    background: var(--card);
-    box-shadow: 0 4px 12px rgba(91, 58, 41, 0.09), inset 0 0 0 1px rgba(91, 58, 41, 0.06);
-}
-.avatar {
-    display: grid;
-    place-items: center;
-    width: 9cqi;
-    height: 9cqi;
-    flex: none;
-    border-radius: 50%;
-    color: #FFF9EF;
-    font-weight: 800;
-    font-size: 3cqi;
-    letter-spacing: 0.03em;
-    box-shadow: inset 0 -2px 5px rgba(0, 0, 0, 0.18);
-}
-.member h4 { font-size: 2.9cqi; font-weight: 700; color: #2A2118; }
-.member p { font-size: 2.35cqi; color: var(--muted); margin-top: 0.4cqi; }
-
 /* --- Contacto --- */
 .contact-rows { display: flex; flex-direction: column; gap: 2.8cqi; }
 .contact-row {
@@ -798,6 +881,35 @@ body.book-closed .footer-card {
 }
 .contact-row svg { width: 4.4cqi; height: 4.4cqi; flex: none; color: var(--accent-dark); }
 .contact-row strong { display: block; font-size: 2.25cqi; letter-spacing: 0.1em; text-transform: uppercase; color: #A08B6C; margin-bottom: 0.5cqi; }
+/* Correo y WhatsApp son enlaces reales: en móvil se tocan para escribir/llamar */
+a.contact-row {
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+a.contact-row:hover {
+    transform: translateX(3px);
+    box-shadow: 0 10px 22px rgba(91, 58, 41, 0.16), inset 0 0 0 1px rgba(214, 113, 42, 0.35);
+}
+
+/* --- Redes sociales --- */
+.social-row { display: flex; gap: 2.4cqi; margin-top: 3.4cqi; }
+.social {
+    display: grid;
+    place-items: center;
+    width: 9cqi;
+    height: 9cqi;
+    border-radius: 50%;
+    background: var(--card);
+    color: var(--accent-dark);
+    box-shadow: 0 4px 12px rgba(91, 58, 41, 0.10), inset 0 0 0 1px rgba(91, 58, 41, 0.06);
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.social svg { width: 4.4cqi; height: 4.4cqi; }
+.social:hover {
+    transform: translateY(-3px);
+    background: var(--accent);
+    color: #FFF7EC;
+}
 
 .form { display: flex; flex-direction: column; gap: 2.6cqi; }
 .form label {
@@ -845,6 +957,62 @@ body.book-closed .footer-card {
 }
 .form-send:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(185, 95, 30, 0.4); }
 .form-send svg { width: 3.2cqi; height: 3.2cqi; }
+.form-send:disabled { opacity: 0.6; cursor: progress; transform: none; }
+/* El motor no re-renderiza las páginas, así que el estado sobrevive a los giros */
+.form-status {
+    font-size: 2.45cqi;
+    line-height: 1.45;
+    color: var(--muted);
+    min-height: 3.6cqi;
+}
+.form-status.ok  { color: #3F7A46; font-weight: 600; }
+.form-status.err { color: #B0472F; font-weight: 600; }
+.form-note { font-size: 2.1cqi; color: #A08B6C; }
+.form.is-sending .form-send { pointer-events: none; }
+/* Trampa antispam: invisible para personas, tentadora para bots */
+.form .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+/* El motor pone user-select:none en todo el libro; los campos deben permitirlo */
+.form input, .form textarea { user-select: text; -webkit-user-select: text; }
+
+/* --- Portadilla (media portada: la cara que sigue a la tapa) ---
+   Convención editorial: va sin número de página y solo lleva el emblema
+   y el título, con mucho aire alrededor. */
+.pg-plate .fb-content {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 3.4cqi;
+}
+.pg-plate .fb-pagenum { display: none; }
+.plate-emblem {
+    display: grid;
+    place-items: center;
+    width: 26cqi;
+    height: 26cqi;
+    border-radius: 50%;
+    color: var(--accent-dark);
+    border: 1.5px solid rgba(184, 138, 84, 0.4);
+    box-shadow: inset 0 0 0 6px rgba(255, 253, 249, 0.7), 0 8px 20px rgba(91, 58, 41, 0.10);
+    background: radial-gradient(circle at 50% 35%, #FFFDF9, #F3EADB);
+}
+.plate-emblem svg { width: 12cqi; height: 12cqi; }
+.plate-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 10cqi;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-indent: 0.14em;
+    color: var(--ink);
+}
+.plate-sub {
+    font-size: 2.5cqi;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-indent: 0.22em;
+    text-transform: uppercase;
+    color: #A08B6C;
+}
+.pg-plate .cover-rule { width: 22cqi; }
 
 /* --- Portada y contraportada --- */
 .pg-cover {
@@ -927,8 +1095,11 @@ body.book-closed .footer-card {
     letter-spacing: 0.48em;
     text-indent: 0.48em;      /* compensa el tracking del último carácter */
     text-transform: uppercase;
-    color: rgba(20, 10, 4, 0.72);
-    text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.55), 0 1px 1px rgba(255, 216, 170, 0.16);
+    /* Repujado: se lee por el bisel. Tinta algo más profunda y luz de canto
+       más marcada que el original, para que la marca no desaparezca en
+       pantallas de bajo contraste o con brillo bajo. */
+    color: rgba(14, 7, 2, 0.86);
+    text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.6), 0 1.5px 1px rgba(255, 222, 178, 0.3);
 }
 .cover-tagline {
     font-size: 2cqi;
@@ -1074,6 +1245,10 @@ body.book-closed .footer-card {
     .notebook[data-state="end"] .chrome { transform: none; }
     .tabs { display: none; }
     .menu-fab { display: grid; }
+    /* Modo una-página: el motor traslada el libro un ancho completo, así que
+       la hoja contigua asomaba por el borde derecho de la pantalla. Se recorta
+       a los lados dejando holgura arriba y abajo para no cortar la sombra. */
+    .notebook { clip-path: inset(-140px 0px -140px 0px); }
     .edgenav { width: 38px; height: 38px; font-size: 20px; }
     .btn-contact { padding: 10px 16px; font-size: 13px; }
     .footer { padding: 8px 10px 16px; }

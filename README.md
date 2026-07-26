@@ -26,8 +26,8 @@ python -m http.server 5187
 | `css/flipbook.css` | Estilos del motor de pase de hoja (copiado del proyecto revista, prefijo `.fb-`) |
 | `css/styles.css` | Todo el diseño: madera, tapa dura, pestañas, contenido editorial de las páginas |
 | `js/flipbook.js` | Motor `Flipbook` (copiado del proyecto revista, sin modificar) |
-| `js/main.js` | Contenido de las 18 páginas, pestañas, drawer, contadores, parallax, formulario |
-| `assets/img/` | Vacío: aquí van las fotos reales que reemplacen a los placeholders |
+| `js/main.js` | Datos del estudio, contenido de las 18 caras, pestañas, drawer, contadores, formulario |
+| `assets/img/` | Vacío por ahora. **[Guía de imágenes](assets/img/README.md)**: qué foto va en cada hueco, medidas y cómo sustituirlas |
 
 ## Cómo funciona la escena
 
@@ -56,21 +56,54 @@ python -m http.server 5187
 - En móvil (≤ 640 px) el motor pasa a modo una-página y las pestañas se convierten en
   un menú lateral (drawer).
 
+## Estructura del libro (18 caras / 9 hojas)
+
+`0` tapa · `1` portadilla · `2` presentación · `3-4` quiénes somos · `5-6` el equipo ·
+`7-8` metodología · `9-10` servicios y planes · `11-12` proyectos · `13-14` tecnologías ·
+`15-16` contacto y formulario · `17` contraportada.
+
+Reglas al añadir o quitar contenido:
+
+- El total de caras debe seguir siendo **par** y cada sección empezar en **cara impar**
+  (izquierda del pliego); si no, la contraportada deja de ser tapa.
+- Al mover páginas hay que actualizar el array `sections` (campo `page`). `activeSection()`
+  es genérico: una sección puede ocupar 2, 4 o más caras sin desincronizar las pestañas
+  (Quiénes somos ya ocupa dos pliegos).
+- Antes de dar por buena una página, comprobar que no desborda: `.fb-content` tiene
+  `overflow:hidden` y el sobrante se **recorta en silencio**.
+
+## Interacción dentro de las páginas
+
+El motor dibuja cada hoja a todo el ancho del libro y sus zonas de agarre por encima de
+todo, lo que impedía usar campos, enlaces y botones. Resuelto desde el CSS del host, sin
+tocar el motor: `.fb-paper` no recibe puntero (solo las caras visibles), las zonas de
+agarre se reducen al filo exterior, y `main.js` ignora las flechas del teclado y el gesto
+de deslizar cuando el foco está en un campo. Se puede pasar página arrastrando la esquina
+o deslizando sobre la propia hoja.
+
 ## Personalizar
 
-- **Correo, teléfono y ciudad**: constantes al inicio de `js/main.js`
-  (`CONTACT_EMAIL`, `CONTACT_PHONE`, `CONTACT_CITY`).
-- **Fotos**: los bloques `photo(...)` de `js/main.js` son placeholders con gradiente e
-  icono. Para usar fotos reales coloca los archivos en `assets/img/` y reemplaza el
-  placeholder por `<img src="assets/img/mi-foto.jpg" alt="...">` dentro de un
-  `<div class="photo ratio-wide">` (la clase conserva bordes y sombra).
-- **Secciones/pestañas**: array `sections` en `js/main.js` (etiqueta, icono, color y
-  página destino). Las páginas viven en el array `pages` (una entrada = una cara).
+Todo lo que cambia con el negocio está en constantes al inicio de `js/main.js`:
+
+- **Marca**: `BRAND` (hoy "Estudio Creativo", provisional). También en el `<title>` y la
+  descripción de `index.html`.
+- **Contacto y redes**: `CONTACT_EMAIL`, `CONTACT_PHONE`, `WHATSAPP` (E.164, para `wa.me`),
+  `WA_TEXT`, `CONTACT_CITY`, `SOCIAL`.
+- **Equipo**: array `TEAM` (nombre, cargo, bio y `img`). Un objeto = una ficha.
+- **Proyectos**: objeto `PROJECTS` (nombre, categoría, descripción, URL pública e `img`).
+- **Formulario**: `FORM_KEY`. Vacía = abre el cliente de correo; con la clave de
+  [Web3Forms](https://web3forms.com) envía directo a la bandeja. Ver la guía de assets.
+- **Fotos**: `photo(icono, clases, pie, ruta, alt)`. Sin ruta deja el hueco preparado; si
+  el archivo falta, vuelve solo al hueco. Detalle en [assets/img/README.md](assets/img/README.md).
+- **Secciones/pestañas**: array `sections` (etiqueta, icono, color y cara destino).
 - **Paleta**: variables CSS al inicio de `css/styles.css`.
-- **Estadísticas del footer**: atributos `data-count` / `data-suffix` en `index.html`.
+- **Estadísticas del footer**: `data-count` / `data-suffix` en `index.html`.
 
-## Pendientes sugeridos
+## Pendientes
 
-- Reemplazar los placeholders por fotografías reales del equipo y de los proyectos.
-- Páginas internas por proyecto (hoy "Ver proyecto" lleva a Contacto como demo).
-- Conectar el formulario a un backend o servicio (hoy abre el cliente de correo con `mailto:`).
+- Subir las fotos reales (equipo, ambiente y capturas de proyectos) según la guía de assets.
+- Configurar `FORM_KEY` para que el formulario entregue los mensajes sin depender del
+  cliente de correo.
+- Añadir `assets/img/og-portada.jpg` para que el enlace se comparta con miniatura.
+- Fijar la marca definitiva y sustituir el emblema geométrico por el logotipo real.
+- Páginas internas por proyecto (hoy "Ver proyecto" abre el sitio publicado).

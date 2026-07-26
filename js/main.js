@@ -196,8 +196,9 @@
             <button class="back-cta cover-cta" type="button" id="btnOpen">Iniciar recorrido ${icons.arrowR}</button>
         `},
 
-        /* 1 — Portadilla (media portada, como en un libro impreso) */
-        { className: 'pg-plate', html: `
+        /* 1 — Cara interior de la tapa delantera: portadilla sobre la guarda.
+              El aro de cuero es el canto de la propia tabla. */
+        { className: 'pg-plate pg-inner', html: `
             <div class="plate-emblem reveal">${icons.logo}</div>
             <h1 class="plate-title reveal">PORTAFOLIO</h1>
             <div class="cover-rule reveal"></div>
@@ -373,8 +374,8 @@
             </div>
         `},
 
-        /* 16 — Contacto · derecha (formulario) */
-        { html: `
+        /* 16 — Cara interior de la tapa trasera: el formulario sobre la guarda */
+        { className: 'pg-inner', html: `
             <h2 class="pg-h2 reveal">Escríbenos</h2>
             <form class="form reveal" id="contactForm" novalidate>
                 <label>Nombre
@@ -427,6 +428,35 @@
     class HardcoverBook extends Flipbook {
         _isBoard(idx) { return idx === 0 || idx === this.total - 1; }
 
+        /** Voladizo de la tapa en px (lo declara --board en el CSS). Se lee del
+            propio cuero de la portada, ya resuelto por el navegador. */
+        _boardPx() {
+            if (this._bpx == null) {
+                const cara = this.sheets[0] && this.sheets[0].front.querySelector('.fb-page');
+                this._bpx = cara ? Math.max(0, -parseFloat(getComputedStyle(cara).left) || 0) : 0;
+            }
+            return this._bpx;
+        }
+        _measure() { this._bpx = null; super._measure(); }   // el voladizo escala con la página
+
+        /* El motor recorta cada cara a la caja de la página, así que a mitad de
+           giro la tabla se encogía al tamaño de una hoja y perdía su voladizo.
+           Como la bisagra de una tapa es SIEMPRE vertical (pivote en el centro
+           del borde), basta rehacer el recorte extendido: nada de geometría. */
+        _renderFold(idx, P, C) {
+            super._renderFold(idx, P, C);
+            if (!this._isBoard(idx)) return;
+            const b = this._boardPx();
+            if (!b) return;
+            if (Math.hypot(P.x - C.x, P.y - C.y) < 0.5) return;   // en reposo no hay recorte
+            const s = this.sheets[idx];
+            const mx = (P.x + C.x) / 2;                            // línea de pliegue
+            const caja = (x0, x1) =>
+                `polygon(${x0}px ${-b}px, ${x1}px ${-b}px, ${x1}px ${this._h + b}px, ${x0}px ${this._h + b}px)`;
+            if (s.front.style.display !== 'none') s.front.style.clipPath = caja(-b, mx);
+            if (s.flap.style.display !== 'none')  s.flap.style.clipPath  = caja(mx, this._w + b);
+        }
+
         _startDrag(e, forward) {
             super._startDrag(e, forward);
             const g = this.drag;
@@ -434,9 +464,6 @@
                 // tapa dura: pivote en el centro del borde → giro plano de tabla
                 g.corner = { x: this._w, y: this._h / 2 };
                 g.P = { x: forward ? this._w : -this._w, y: this._h / 2 };
-                // la cubierta se despliega desde el primer instante del arrastre:
-                // si esperase al soltar, el papel asomaría fuera del cuero
-                document.getElementById('notebook').classList.add('is-opening');
             }
         }
 
@@ -572,7 +599,6 @@
         const state = info.current === 0 ? 'cover' : (info.current >= fb.total ? 'end' : 'open');
         notebook.dataset.state = state;
         notebook.dataset.mode = info.mode;
-        notebook.classList.remove('is-opening');   // el arrastre de tapa ya terminó
 
         // Cerrado por la portada: en escena solo el libro. Al abrirlo aparecen
         // footer, contacto y flechas (y arrancan los contadores la primera vez).

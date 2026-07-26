@@ -119,71 +119,6 @@ body {
 .notebook[data-state="cover"] .chrome { transform: translateX(calc(var(--pw) / -2)); }
 .notebook[data-state="end"] .chrome   { transform: translateX(calc(var(--pw) / 2)); }
 
-/* --- Tapa dura: la cubierta que envuelve al bloque de hojas ---
-   No es una hoja más: es una tabla rígida SIEMPRE presente y siempre mayor
-   que el papel (voladizo de ~5 mm por los cuatro lados). Cerrada envuelve la
-   pila; abierta se despliega y enmarca el pliego completo. Vive detrás del
-   papel (z 5 < #book z 10), así que solo asoma como marco: las hojas nunca
-   sobresalen de la tapa.
-   Geometría medida: papel cerrado = caja del cuaderno; abierto = de -50% a
-   150% de esa caja (dos páginas centradas en el lomo). */
-.book-block {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    pointer-events: none;
-}
-.book-block::before {
-    content: '';
-    position: absolute;
-    top: calc(var(--board) * -1);
-    bottom: calc(var(--board) * -1);
-    left: calc(var(--board) * -1);
-    width: calc(100% + var(--board) * 2);
-    border-radius: calc(var(--board) + 8px);
-    background:
-        radial-gradient(120% 90% at 50% 0%, rgba(255, 216, 170, 0.10), rgba(0, 0, 0, 0) 55%),
-        repeating-radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.012) 0 2px, rgba(0, 0, 0, 0.02) 3px 5px),
-        linear-gradient(150deg, #4A3123 0%, #35241A 55%, #241811 100%);
-    box-shadow:
-        0 30px 54px rgba(60, 36, 14, 0.42),
-        0 8px 18px rgba(60, 36, 14, 0.28),
-        inset 0 1px 1px rgba(255, 230, 200, 0.16),
-        inset 0 -2px 5px rgba(0, 0, 0, 0.4);
-    /* Se despliega algo ANTES que el bloque de papel (0.5s frente a los 0.65s
-       del translate de .fb-book): con la misma curva y menor duración la tabla
-       va siempre por delante, así el papel nunca se sale de la cubierta a
-       mitad de la apertura. `left/width` no se compositan, de ahí el margen. */
-    transition:
-        left  0.5s var(--flip-ease),
-        width 0.5s var(--flip-ease);
-}
-/* Costura del canto de la tapa, un par de milímetros por dentro del borde */
-.book-block::after {
-    content: '';
-    position: absolute;
-    inset: calc(var(--board) * -0.45);
-    border-radius: calc(var(--board) + 3px);
-    border: 1px dashed rgba(226, 190, 148, 0.16);
-    transition:
-        left  0.5s var(--flip-ease),
-        width 0.5s var(--flip-ease);
-}
-/* Abierta: la cubierta se despliega y enmarca las dos páginas.
-   `.is-opening` la despliega ya al empezar a arrastrar una tapa: si esperase
-   al soltar, el papel quedaría un instante fuera del cuero. */
-.notebook[data-mode="spread"][data-state="open"] .book-block::before,
-.notebook[data-mode="spread"].is-opening .book-block::before {
-    left: calc(-50% - var(--board));
-    width: calc(200% + var(--board) * 2);
-}
-.notebook[data-mode="spread"][data-state="open"] .book-block::after,
-.notebook[data-mode="spread"].is-opening .book-block::after {
-    left: calc(-50% - var(--board) * 0.45);
-    right: auto;
-    width: calc(200% + var(--board) * 0.9);
-}
-
 /* Canto del bloque de hojas: solo se ve con el libro cerrado */
 .page-edge {
     position: absolute;
@@ -1068,13 +1003,31 @@ a.contact-row:hover {
 }
 .pg-plate .cover-rule { width: 22cqi; }
 
-/* --- Portada y contraportada ---
-   Las tapas NO miden lo mismo que las hojas: la cara de cuero se extiende el
-   voladizo completo por los cuatro lados, así que el bloque de papel siempre
-   queda contenido dentro de la cubierta y nunca sobresale. */
+/* --- Las dos tapas ---
+   Las tapas NO miden lo mismo que las hojas: son tablas con un voladizo de
+   ~5 mm por los cuatro lados, y ese cuero VIAJA CON LA HOJA al girar (no hay
+   ninguna base pintada debajo). De ahí salen los dos marcos del libro
+   abierto: la tapa delantera queda al fondo de la pila izquierda y la trasera
+   al fondo de la derecha, así que su cuero asoma alrededor de las páginas.
+
+   Cara exterior (cuero a sangre): se agranda la propia cara. */
 .pg-cover {
     inset: calc(var(--board) * -1);
     border-radius: calc(var(--board) + 8px);
+}
+
+/* Cara interior de cada tapa (contracara del cuero): canto de cuero alrededor
+   de una guarda del tamaño exacto de una página. NO se agranda la cara —
+   `.fb-page` es el contenedor de las container queries y agrandarlo escalaría
+   el texto un 6% respecto al resto de páginas. El canto se dibuja con sombras
+   de expansión, que se pintan POR FUERA de la caja y siguen el radio: el papel
+   queda intacto y la tabla asoma alrededor, sin ningún elemento extra. */
+.pg-inner {
+    overflow: visible;
+    box-shadow:
+        0 0 0 var(--board) #3A2719,
+        0 0 0 calc(var(--board) + 1.5px) rgba(18, 9, 3, 0.55),
+        0 0 0 calc(var(--board) + 2.5px) rgba(255, 226, 186, 0.07);
 }
 .pg-cover {
     background:
@@ -1307,10 +1260,20 @@ a.contact-row:hover {
     .tabs { display: none; }
     .menu-fab { display: grid; }
     /* Modo una-página: el motor traslada el libro un ancho completo, así que
-       la hoja contigua asomaba por el borde derecho de la pantalla. Se recorta
-       SOLO el bloque de papel (no el cuaderno entero): así desaparece la hoja
-       fantasma y la cubierta conserva su voladizo lateral. */
+       la hoja contigua asomaba por el borde derecho de la pantalla. Hay que
+       recortar justo por la caja del papel: la hoja fantasma empieza ahí
+       mismo, así que cualquier holgura la deja asomar. */
     .book-clip { clip-path: inset(-140px 0px -140px 0px); }
+    /* Consecuencia: el voladizo lateral de las tapas cae dentro del recorte.
+       Como aquí solo se ve UNA página, el canto de la tabla se dibuja por
+       dentro del borde, que a página suelta se lee igual de bien. */
+    .pg-cover { inset: 0; border-radius: 0 14px 14px 0; }
+    .fb-mirror .pg-cover { border-radius: 14px 0 0 14px; }
+    .pg-inner {
+        box-shadow: none;
+        outline: var(--board) solid #3A2719;
+        outline-offset: calc(var(--board) * -1);
+    }
     .edgenav { width: 38px; height: 38px; font-size: 20px; }
     .btn-contact { padding: 10px 16px; font-size: 13px; }
     .footer { padding: 8px 10px 16px; }

@@ -33,9 +33,14 @@ python -m http.server 5187
 
 - El libro (`#book`) mide **una página** (`--pw` × `--ph` en `styles.css`); el motor
   muestra el pliego completo trasladando el contenedor (0% portada / 50% abierto / 100% final).
-- No hay base de cuero: el cuaderno ES el objeto sobre la madera. Cerrado (`data-state`
-  `cover`/`end`) aparece `.book-block` (contratapa rígida con voladizo + canto de hojas)
-  para el grosor de **tapa dura**; las **pestañas** (`.chrome`) se desplazan con el lomo.
+- **La tapa dura no se dibuja debajo: son las dos hojas de los extremos.** No hay ninguna
+  base de cuero. La primera y la última hoja son tablas con un voladizo de ~5 mm
+  (`--board`) que **viaja con ellas al girar**: la cara exterior es cuero a sangre
+  (`.pg-cover`, agrandada) y la interior lleva el canto con sombras de expansión
+  (`.pg-inner`, sin agrandar la caja para no escalar las container queries).
+  Como el motor deja esas dos hojas al fondo de cada pila, su cuero asoma alrededor del
+  papel y **forma solo los dos marcos del libro abierto**, sin que nadie los pinte.
+  Las **pestañas** (`.chrome`) se desplazan con el lomo.
 - La página carga con el **libro cerrado y nada más en escena**: el botón Contáctanos,
   las flechas y el footer aparecen (con fundido) recién al abrir la tapa, y los contadores
   del footer arrancan en ese momento. Se abre con "Iniciar recorrido", clic en la portada,
@@ -43,7 +48,9 @@ python -m http.server 5187
 - **Hojas de libro, no de revista** (`HardcoverBook`, subclase en `main.js`, sin tocar el
   motor): las hojas interiores apenas se comban al arrastrarlas (`devMax` reducido) y las
   **tapas** (primera y última hoja, clase `.fb-board`) giran totalmente planas — pivote
-  central, sin doblez, sin sombra de barrido ni brillo de pliegue.
+  central, sin doblez, sin sombra de barrido ni brillo de pliegue. `_renderFold` rehace su
+  recorte extendido por el voladizo: el motor recorta cada cara a la caja de la página y,
+  sin eso, la tabla se encogía al tamaño de una hoja a mitad de giro.
 - La sombra de suelo de un lado nuevo aparece con retardo (`fb-has-left/right` en
   `styles.css`) para que no se dibuje un rectángulo sombreado antes de que la tapa aterrice.
 - Sin anillas wire-o (se retiraron; quedan para una futura variante del diseño).
